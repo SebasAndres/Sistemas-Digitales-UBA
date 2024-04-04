@@ -62,3 +62,7 @@ $$a = q_N \times b^{N+1} + r_N \times b^N +... + r_1 \times b + r \times b^0$$
 O sea, el primer elemento de cada producto es el que aparece en los digitos de nuestra representacion posicional.
 
 $$M = (q_N, r_N, ..., r_1, r)_{(b)}$$
+
+**Resumen**: O sea, para pasar- por ejemplo- a binario, divido al numero por 2, sucesivamente quedandome con el resto, hasta el ultimo $q>=2$ y ahi me quedo con el resto y el ultimo cociente [$(q_N, r_N, ..., r_1, r)$]
+
+![Alt Text](img/pasaje_a_base.png)
