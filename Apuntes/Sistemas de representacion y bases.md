@@ -10,6 +10,8 @@ Necesitamos representar una magnitud a traves de un sistema de representacion:
 
 El soporte formal lo hallamos en bases de representacion numerica.
 
+Diremos que un sistema de representacion de numeros como cadenas binarias de longitud fija es biyectivo si no admite mas de una representacion para cada numero y toda cadena disponible es utilizada para representar algun numero.
+
 ## Bases
 
 En un sistema de representacion, las bases determinan la cantidad de simbolos distintos que podemos encontrar en un digito dado dentro de nuestra representacion.
@@ -66,3 +68,6 @@ $$M = (q_N, r_N, ..., r_1, r)_{(b)}$$
 **Resumen**: O sea, para pasar- por ejemplo- a binario, divido al numero por 2, sucesivamente quedandome con el resto, hasta el ultimo $q>=2$ y ahi me quedo con el resto y el ultimo cociente [$(q_N, r_N, ..., r_1, r)$]
 
 ![Alt Text](img/pasaje_a_base.png)
+
+
+
