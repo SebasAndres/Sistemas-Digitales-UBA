@@ -1,8 +1,23 @@
 # Algebra de bool
 
-# Notaciones:
-- 1. AND (.): `A.B == A && B`
-- 2. OR (+): `A+B == A or B`
+### Notaciones:
+AND $(.)$: `A.B == A && B`
+
+OR $(+)$: `A+B == A or B`
+
+### Axiomas (algunos)
+$0.0 = 0$
+
+$1.1 = 1$
+
+$1.0 = 0.1 = 0$
+
+$0+0 = 0$
+
+$1+1 = 1$
+
+$1+0 = 0+1 = 1$
 
 
+### Propiedades 
 ![alt text](img/algebra_bool.png)
