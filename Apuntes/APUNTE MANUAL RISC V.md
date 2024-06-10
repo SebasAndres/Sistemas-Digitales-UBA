@@ -278,7 +278,39 @@ Funciones que no llaman a otras funciones son llamadas funciones hoja. Cuando un
 Una función modificará los registros que almacenan los valores de retorno, por lo que estos son registros temporales. No hay necesidad de preservar la dirección de retorno ni los argumentos, por lo que estos registros también son temporales. Quien llama la función puede confiar en que el stack pointer no se modificará a través de llamadas a funciones.
 
 ## [12] ¿Qué son las pseudoinstrucciones? ¿Esto es microprogramación?
-...
+
+<img src="codigo_fuente_a_ejecutable.png">
+
+### Pseudoinstrucciones
+
+Las pseudoinstrucciones son instrucciones que no son parte del conjunto de instrucciones nativas de la arquitectura (ISA, Instruction Set Architecture) pero que el ensamblador traduce a una o más instrucciones nativas. Estas pseudoinstrucciones hacen que la programación en ensamblador sea más fácil y legible, proporcionando una capa de abstracción sobre el hardware subyacente.
+
+La tarea del ensamblador no es simplemente producir código objeto a partir de instrucciones que el procesador pueda ejecutar, sino además extenderlas para incluir operaciones útiles para el programador de lenguaje ensamblador o el escritor de compiladores. Esta categoría, basada en configuraciones ingeniosas de instrucciones normales es llamada pseudoinstrucciones.
+
+Las pseudoinstrucciones de ensamblador y la microprogramación son conceptos distintos en el diseño de sistemas informáticos. Las pseudoinstrucciones son herramientas del ensamblador para simplificar la programación, mientras que la microprogramación es una técnica de diseño de hardware para implementar instrucciones de la ISA mediante microinstrucciones.
+
+### Microprogramacion
+La microprogramación es una técnica de implementación del hardware de la CPU. Es una capa interna de control que traduce las instrucciones de alto nivel de la ISA a un conjunto de microinstrucciones más simples, las cuales controlan directamente los componentes de hardware del procesador.
+
+Ejemplo de MICROPROGRAMACION:
+- Supongamos una instrucción de la ISA como ADD R1, R2, R3 (donde R1 = R2 + R3). En un sistema microprogramado, esta instrucción podría ser descompuesta en microinstrucciones como:
+
+- - Leer el valor de R2 y R3.
+
+- - Pasar estos valores a la unidad aritmética (ALU).
+
+- - Sumar los valores en la ALU.
+
+- - Escribir el resultado en R1.
+
+- Estas microinstrucciones se ejecutan secuencialmente bajo el control del microprograma.
+
+## [13] ¿Qué son las directivas de ensamblador?
+Los comandos que comienzan con un punto son directivas del ensamblador. Estos son comandos para el ensamblador y no código a ser traducido. Le indican al ensamblador dónde poner código y datos, especifican constantes de texto y datos para uso en el programa, etcétera. La Figura 3.9 muestra las directivas de ensamblador para RISC-V. 
+
+<img src="directivas_del_ensamblador.png">
+
+El ensamblador produce el archivo objeto usando el Formato ELF (Executable and Linkable Format: Formato Ejecutable y Linkeable) [TIS Committee 1995].
 
 ## [17] Intercambiar dos registros sin intervencion de un tercero 
 ~~~
