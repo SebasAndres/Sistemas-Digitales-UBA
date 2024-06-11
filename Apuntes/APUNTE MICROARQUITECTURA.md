@@ -29,10 +29,12 @@ Los elementos de memoria del datapath son [4]:
 Las instrucciones de mismo tipo tienen esquemas similares.
 
 ## Procesador de ciclo simple:
-Las operaciones se completan durante un unico ciclo de reloj, por lo que la duracion del ciclo debe ser suficientemente larga como para
-permitir completar la operacion mas costosa (las que toma mas
-tiempo). 
+Las operaciones se completan durante un unico ciclo de reloj, por lo que la duracion del ciclo debe ser suficientemente larga como para permitir completar la operacion mas costosa (las que toma mas tiempo). 
+
 Esto significa que el rendimiento del procesador no sera optimo pero resulta conveniente como ejemplo introductorio a las microarquitecturas.
+
+Las instrucciones de RISC-V normalmente se ejecutan en un ciclo de reloj (ignorando cache misses), pero como vimos antes, tanto ARM-32 como x86-32 tienen instrucciones que llevan varios ciclos de reloj aun sin cache misses.
+
 
 ## Diseño incremental del DATAPATH
 A los elementos de memoria se le incorpora:

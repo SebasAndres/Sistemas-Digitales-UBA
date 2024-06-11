@@ -65,6 +65,9 @@ RISC V es una ISA modular.
 
 Un ISA modular se basa en la idea de diseñar el conjunto de instrucciones como bloques independientes que pueden combinarse según las necesidades específicas. Un ejemplo de esto es RISC-V, que tiene un conjunto base de instrucciones y varios módulos opcionales (como los módulos de coma flotante, atómica, etc.).
 
+La Fundación RISC-V hará crecer el ISA lentamente a través de extensiones
+opcionales para prevenir el incrementalismo que ha plagado ISAs exitosos del pasado.
+
 El núcleo fundamental del ISA es llamado RV32I, el cual ejecuta un stack de software completo. RV32I está congelado y nunca cambiará, lo cual provee un objetivo estable para desarrolladores de compiladores, sistemas operativos y
 programadores de lenguaje ensamblador. La modularidad viene de extensiones opcionales estándar que el hardware puede incorporar de acuerdo a las necesidades de cada aplicación.
 Esta modularidad permite implementaciones muy pequeñas y de bajo consumo energético de Si el software utiliza una instrucción omitida de RISC-V de una extensión opcional, el hardware captura el error y ejecuta la función deseada en
@@ -76,20 +79,50 @@ y no como un requerimiento para implementaciones futuras, como ISAs incrementale
 
 
 ## [3] Metricas de diseño de un ISA
-1. <b>Costo</b>: Esta asociado al area dek die/chip/circuito integrado. 
-2. <b>Simplicidad</b>: Se bussca conservar al ISA simple para reducir el tamaño del procesador que lo implementa. Ademas, las instruciones mas sencillas son las que tienden a ser mas utilizadas frente a las complejas.
-3. <b>Rendimiento</b>: Esta alterado por tres factores:
+
+### Métricas de diseño del set de instrucciones:
+
+1. Espacio de memoria de 32 bits direccionable por bytes.
+
+2. Todas las instrucciones son de 32 bits
+
+3. 31 registros, todos de 32 bits, y el registro 0 alambrado a cero (zero)
+
+4. Todas las operaciones son entre registros (ninguna es de registro a memoria)
+
+5. Load/Store word, más load/store byte y halfword (signed y unsigned)
+
+6. Opción de inmediatos en todas las instrucciones aritméticas, lógicas y de corrimientos
+
+7. A Los valores inmediatos siempre se les hace sign-extension
+
+8. Un modo de direccionamiento (registro + inmediato) y branching relativo al PC
+
+9. No Hay Instrucciones de multiplicación ni división
+
+### Impacto en el diseño:
+1. <b>Costo</b>: Esta asociado al area dek die/chip/circuito integrado. Reduce el costo de error aleatorio que tienen los chips.
+
+2. <b>Simplicidad</b>: Se busca conservar al ISA simple para reducir el tamaño del procesador que lo implementa. Ademas, las instruciones mas sencillas son las que tienden a ser mas utilizadas frente a las complejas. Más fácil de validar y diseñar, también menor documentación.
+
+3. <b>Rendimiento</b>: Menos instrucciones, menos ciclos de clock, tiempo total del programa. Esta alterado por tres factores:
 $$\frac{instrucciones}{programa}\times \frac{\text{ciclos promedio}}{instruccion}\times\frac{tiempo}{\text{ciclo reloj}}=\frac{tiempo}{programa}$$
+
 4. <b>Aislamiento de arquitectura</b>: La idea es que $\text{arquitectura} \neq \text{implementacion/organizacion}$. Los arquitectos de computadora no deberian agragar funciones que afecten algunas implementaciones (actuen != para una misma arquitectura, pero distinta microarquitectura). 
-5. <b>Espacio para crecer</b>: El unico camino para incrementar el rendimiento en una ISA es agregar instrucciones optimizadas para tareas especificas. Tambien es util, por ejemplo, admitir mayores calores intermedios para hacer operaciones en menos pasos.
+Toda instrucción está directamente determinada en la arquitectura y se evitan realizar en la implementación para mantener la escalabilidad del programa. Si las instrucciones se modifican en la implementación para mejorar el rendimiento, solamente beneficiará a un sector específico y no a todo el programa.
+
+5. <b>Espacio para crecer</b>: El unico camino para incrementar el rendimiento en una ISA es agregar instrucciones optimizadas para tareas especificas. Hay espacio para seguir agregando código de operaciones. Tambien es util, por ejemplo, admitir mayores valores intermedios para hacer operaciones en menos pasos.
+
 6. <b>Tamaño del programa</b>: Minimizar el tamaño de las instrucciones en bytes $\rightarrow$ programas mas cortos $\rightarrow$ menor area del chip necesitada. Ademas, programa mas chicos reducen los <i>instruction cache misses</i>.
-7. <b>Facilidad para programar</b>: Como el acceso en registros es mas rapido que en memoria, entonces los cmpiladores deben asignar bien los registros. Esta asignacion es mas sencilla entre mas registros se tengan. Es util si el ISA soporta PIC (Position Independent Code), dado que soporta dynamic linking, que permite integrar codigo de librerias compartidas en distintas direcciones en distitnos programas.
+
+7. <b>Facilidad para programar</b>: 
+Como tiene más registros que otras arquitecturas es
+más fácil compilar. RISC-V realiza las instrucciones en un ciclo de clock entonces la velocidad de ejecución es más rápida. Y, por último, las instrucciones y operandos se pueden obtener de los registros entonces le suma una facilidad a los desarrolladores.
 
     Los arquitectos además eligieron cuidadosamente los opcodes de RV32I para que instrucciones con datapaths similares compartan la mayor cantidad de bits posible, simplificando así la lógica de control.
 
-    Un set de instrucciones complejo, propio de procesadores CISC (Complex Instruction Set Computer),
-    provee una gran cantidad de instrucciones, dando una mayor flexibilidad al momento de programar a
-    bajo nivel, pero tener instrucciones complejas hace que la lógica para ejecutarlas sea más complicada (tengo más instrucciones que decodificar).
+    Un set de instrucciones complejo, propio de procesadores CISC (Complex Instruction Set Computer), provee una gran cantidad de instrucciones, dando una mayor flexibilidad al momento de programar a bajo nivel, pero tener instrucciones complejas hace que la lógica para ejecutarlas sea más complicada (tengo más instrucciones que decodificar).
+
 ## [4] Nomenclatura y tipo de instrucciones
 
 ### Nomenclatura
@@ -105,7 +138,6 @@ de la decodificación.
 
 Cuarto, los campos inmediatos en estos formatos siempre son extendidos en signo, y el bit del signo siempre está en el bit más significativo de la instrucción. Esta decisión implica que la extensión de signo del inmediato (lo cual también puede estar en un área crítica en el tiempo), puede continuar antes de la decodificación.
 
-
 ### Tipos de instrucciones:
 - 1, R-Type: Para operaciones entre registros.
 - 2, I-type: Para inmediatos cortos y loads.
@@ -114,7 +146,11 @@ Cuarto, los campos inmediatos en estos formatos siempre son extendidos en signo,
 - 5, U-type: Para inmediatos largos.
 - 6, J-type: Para saltos incondicionales.
 
+<img src="formato_instrucciones.png">
+
 ## [5] Ventajas del registro x0=0
+La ventaja de la constante zero es que permite simplificar un montón de operaciones comunes y repetitivas en nuestras instrucciones (por ej jump, return, branch), generando pseudoinstrucciones. No se puede escribir el registro x0, generaría una excepción.
+
 La mayoría de las pseudoinstrucciones de RISC-V dependen de x0. Como pueden ver, apartar uno de los 32 registros para que esté alambrado a cero, simplifica significativamente el set de instrucciones de RISC-V permitiendo muchas operaciones populares tales como: jump, return y branch on equal to zero—como pseudoinstrucciones.
 
 ## [6] Resolucion de la logica de branching
@@ -129,25 +165,16 @@ Dado que las instrucciones de RISC-V deben ser múltiplos de dos bytes, el modo 
 El direccionamiento relativo al PC ayuda con código independiente de posición, reduciendo de
 esta manera el trabajo del linker y del loader.
 
-RISC-V excluyó al infame branch retardado de MIPS-32, Oracle SPARC y otros. Además evitó los códigos de condición de ARM-32 y x86-32 para branches condicionales. Éstos agregan estados adicionales que son puestos implícitamente por muchas instrucciones, lo cual complica el cálculo de dependencias en ejecución fuera-de-orden. Finalmente, se omitieron las instrucciones de loop
-del x86-32: loop, loope, loopz, loopne, loopnz.
+El branching permite comparar distintas condiciones, dependiendo la que se elija (dependiendo qué instrucción se utilice), si se cumple la condición, saltara a un inmediato, que sea la dirección de una etiqueta, tomando el valor inmediato de 12 bits y lo multiplica por 2, le extiende el signo y lo suma al PC.
 
 ## [7] Resolucion del Overflow
 La mayoría, pero no todos los programas ignoran el desbordamiento (overflow) aritmético
 de enteros, por lo que RISC-V hace dicha validación en software. Suma sin signo requiere
 solamente un branch adicional luego de la suma: 
 
-~~~
-addu t0, t1, t2; 
-bltu t0, t1, overflow.
-~~~
-
-Para suma con signo, si se sabe el signo de un operando, validar el desbordamiento requiere
-un solo branch luego de la suma:
-~~~
-addi t0, t1, +imm;
-blt t0, t1, overflow.
-~~~
+Haciendo una suma de t1 y t2, por ejemplo, resuelve:
+overflow sii
+$$ ((t2<0) \land (t1+t2>=t1)) \lor ((t2>=0) \land (t1+t2<t1))$$
 
 Esto incluye el caso común de la suma con un operando inmediato. En general, para validar el
 desbordamiento en suma con signo, tres instrucciones adicionales son requeridas, sabiendo
@@ -312,6 +339,61 @@ Los comandos que comienzan con un punto son directivas del ensamblador. Estos so
 
 El ensamblador produce el archivo objeto usando el Formato ELF (Executable and Linkable Format: Formato Ejecutable y Linkeable) [TIS Committee 1995].
 
+## [14] ¿Qué significa position independent code? ¿Qué ventaja tiene sobre el código dependiente de posición?
+
+### Linker
+En lugar de compilar todo el código fuente cada vez que cambia un archivo, el linker permite que archivos individuales puedan ser ensamblados por separado. Luego “une” el código objeto nuevo con otros módulos precompilados, tales como librerías. Deriva su nombre a partir de una de sus tareas, la de editar todos los links de las instrucciones de jump and link en el archivo objeto. En realidad, linker es un nombre corto de "link editor", el nombre histórico para este paso de la Figura 3.1. En sistemas Unix, la entrada del linker son archivos
+con la extensión .o (e.j., foo.o, libc.o ), y su salida es el archivo a.out. Para MS-DOS, las entradas son archivos con extensión .OBJ o .LIB y la salida es un archivo .EXE.
+
+La Figura 3.10 muestra las direcciones de las regiones de memoria reservadas para código y datos en un programa típico de RISC-V. El linker debe ajustar las direcciones tanto del programa como de datos en el archivo objeto para apegarse a las direcciones de esta figura. 
+
+### PIC
+Position Independent Code (PIC) es un tipo de código máquina que puede ejecutarse correctamente sin importar su ubicación en la memoria. Esto significa que las direcciones absolutas no se utilizan directamente en el código, y en su lugar, se utilizan referencias relativas o mecanismos de resolución en tiempo de ejecución para acceder a las variables y funciones. Esto es especialmente útil en ciertos contextos, como el uso de bibliotecas compartidas (shared libraries) y la implementación de ciertos tipos de protección de memoria.
+
+Es más fácil para el linker si los archivos de entrada son position independent code (PIC). PIC significa que todos los branches a instrucciones y referencias a datos en un archivo son correctos independientemente de dónde sea puesto el código. Como se mencionó en el Capítulo 2, el branch relativo a PC de RV32I hace esto mucho más fácil.
+
+## [16] Describa las similitudes y diferencias entre las instrucciones de formatos B y S. Idem entre las instrucciones J y U.
+
+### Registros B y S
+Las instrucciones de carga (S) y de saltos condicionales (B) se codifican como se indica a continuacion. 
+
+Ambos formatos codifican un inmediato en la instruccion, en el caso de las instrucciones de carga es de 12 bits, en los saltos condicionales es de 13 bits y expresa el desplazamiento en complemento a 2 al que se debe
+saltar en relacion al valor actual del PC. 
+Este desplazamiento (offset) siempre se desplaza una posicion a izquierda antes de
+sumarlo al PC ya que se encuentra siempre en posiciones pares.
+
+La razón por la cual las instrucciones B-type utilizan 13 bits para el inmediato es para proporcionar un rango mayor de desplazamiento al representar estos desplazamientos en unidades de 2 bytes, lo cual es necesario para las operaciones de salto condicional que pueden saltar tanto hacia adelante como hacia atrás en el código. 13 bits de inmediato en las instrucciones B-type permiten codificar un desplazamiento que puede ser positivo o negativo.
+
+
+### Instrucciones U/J
+Las instrucciones de inmediato superior (U) y de saltos incondicionales (J) se codifican como se indica a continuacion. 
+
+Ambos formatos codifican un inmediato en la instruccion, en el caso de las instrucciones de inmediato superior es de 20 bits, en los saltos incondicionales es de 21 bits y expresa el valor de los 21 bits mas altos de la direccion a la que se debe saltar en relacion al valor actual del PC. Este desplazamiento (offset) siempre se desplaza una posicion a izquierda antes de sumarlo al PC ya que se encuentra siempre en posiciones pares.
+
+## Desplazamiento en unidades de 2 bytes
+
+Aunque las instrucciones están alineadas a 4 bytes, al representar el desplazamiento en unidades de 2 bytes, se puede lograr una codificación más eficiente y flexible.
+
+La elección de representar el desplazamiento en unidades de 2 bytes (en lugar de 4 bytes) en las instrucciones de salto condicional en RISC-V permite:
+
+- Un uso más eficiente del espacio de bits disponibles: 13 bits pueden cubrir un rango de desplazamiento más que suficiente para la mayoría de las operaciones de salto sin necesidad de aumentar el tamaño de la instrucción.
+- Mayor flexibilidad en la codificación de desplazamientos, aprovechando mejor el rango de valores que se pueden representar con un número limitado de bits.
+- Optimización del rango de salto: Permite representar de manera efectiva desplazamientos pequeños y medianos, que son más comunes, sin desperdiciar bits en saltos extremadamente grandes que son menos frecuentes.
+
+### Ventajas de Utilizar Unidades de 2 Bytes
+
+#### Mayor Rango de Salto:
+
+Utilizando 13 bits para el desplazamiento en unidades de 2 bytes, se puede alcanzar un rango efectivo de -4096 a +4096 bytes.
+Si el desplazamiento se representara en unidades de 4 bytes, el mismo rango de bits permitiría un rango de -8192 a +8192 bytes, pero se requerirían más bits para representar el mismo rango de saltos cortos y medios, que son más comunes.
+
+#### Flexibilidad y Eficiencia:
+Al codificar el desplazamiento en unidades de 2 bytes y luego desplazándolo a la izquierda (multiplicando por 2) para obtener el desplazamiento real en bytes, se puede aprovechar mejor el rango de valores posibles con el número de bits disponibles.
+
+Esto hace que el conjunto de instrucciones sea más eficiente en términos de tamaño y capacidad de representar un amplio rango de saltos.
+
+Representar el desplazamiento en unidades de 2 bytes permite especificar desplazamientos impares (entre las instrucciones) que en la práctica no se utilizan debido a la alineación de 4 bytes, pero esto también significa que se puede utilizar la misma codificación para sistemas que pueden tener diferentes requisitos de alineación o para futuros usos.
+
 ## [17] Intercambiar dos registros sin intervencion de un tercero 
 ~~~
 xor x1,x1,x2        # x1’ == x1^x2, x2’ == x2
@@ -323,3 +405,74 @@ Pista: or exclusivo "xor" es
 - asociativo ((a ⊕ b) ⊕ c = a ⊕ (b ⊕ c))
 - su propio inverso (a ⊕ a = 0),
 - y tiene identidad (a ⊕ 0 = a).
+
+## [18] Sabiendo que a1 = 0xffffffff Cuánto queda almacenado en a2 luego de realizar: `andi a2,a1,0xf00`
+
+~~~
+.text:
+    lui a1, 0xFFFFF    # a1 = 0xFFFFF000
+    ori a1, a1, -1     # a1 = 0xFFFFFFFF
+    
+    lw t0 masc
+    and a0 a1 t0    
+
+.data:
+    masc: .word 0xf00
+
+## 0xFFFFFFFF: 1111 1111 1111 1111 1111 1111 1111 1111 
+## 0X00000F00: 0000 0000 0000 0000 0000 1111 0000 0000
+## ^^        : 0000 0000 0000 0000 0000 1111 0000 0000 
+
+# res: 0000 0000 0000 0000 0000 1111 0000 0000 
+~~~
+
+## [19] ¿En qué posición dentro de la instrucción se encuentran los bits de los registros destino y origen? ¿Depende del tipo de instrucción o de la instrucción en sí? ¿Por qué fue diseñado así el formato de instrucción?
+
+Los registros de origen se encuentran en los bits [19:15] y/o en los bits [24:19]. Entre el bit 11 y el 6 se encuentra el registro destino.
+
+Las posiciones son las mismas en todas las instrucciones, lo que sí, varía si tiene el registro destino o si tiene uno o más registros de origen.
+
+Las instrucciones tienen los bits de los registros a ser leídos y escritos van en la misma posición para todas las instrucciones, así se puede acceder a estos antes de la decodificación. 
+
+Las instrucciones son todas de 32 bits para así para simplificar la decodificación de instrucciones.
+
+## [20] ¿Qué problemas puede ocasionar utilizar un registro de propósito general para el PC?
+
+Complica la predicción de saltos, dejando que cualquier instrucción puede ser un branch.
+
+## [21] ¿Cómo se hace una lectura del PC?
+
+El PC actual se puede obtener poniendo el campo inmediato U de la instrucción auipc a 0.
+
+Podemos hacerla asi:
+```asm
+auipc t0, 0x000
+# Esta instrucción sumará el pc + 0x000 y
+# lo guardará en el registro temporal t0
+``` 
+
+## [22] Little Endian
+La endianess determina cómo se almacenan y se interpretan los bytes de una palabra en la memoria. Existen dos tipos principales de endianess:
+- Big-endian: El byte más significativo (MSB, Most Significant Byte) se almacena en la dirección de memoria más baja.
+- Little-endian: El byte menos significativo (LSB, Least Significant Byte) se almacena en la dirección de memoria más baja.
+
+RISC-V utiliza la convención little-endian por defecto, aunque también puede soportar big-endian.
+
+Little Endian es una manera de ordenar los bytes predominantes, lo usan los sistemas más comerciales. En la parte más baja de la memoria se guardaran los bytes más significativos y en las más altas, los que menos son. Es importante cuando se accede al mismo dato en modo word y byte.
+
+Ejemplo de Little-endian:
+0x12345678 --->  |0x78|0x56|0x34|0x12|    
+
+## [23] Simplicidad
+
+### [a] ¿Acceder a un operando en registro es más rápido que buscar el operando en memoria?
+
+Si, por eso en RISC-V se tienen tantos registros disponibles, para comprometer lo menos posible a la memoria.
+
+### [b] A partir del inciso anterior, ¿cómo cree que impacta al rendimiento del programa y a la arquitectura la cantidad de registros disponibles?
+
+La velocidad de los ciclos en RISC-V es más rápida que en otras arquitecturas debido a tener más registros, facilitando la tarea a los programadores de ensamblador y
+compiladores. Impacta también en el rendimiento positivamente porque no necesariamente van a estar las instrucciones y operandos en memoria.
+
+## [24] Como resuelve BGT con RISC-v32
+Compara 2 registros, si el primero es mayor que el segundo, realizará un salto a la posición especificada.

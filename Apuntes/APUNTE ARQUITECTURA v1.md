@@ -141,7 +141,8 @@ Se compone de:
 ### Instrucciones Logicas:
 - <b>or</b>: Util para combinar dos registros que solo tienen asignada la parte alta y baja respectivamente, un or entre 0xFEED0000 y 0x0000F0CA resulta en 0xFEEDF0CA.
 - <b>and</b>: Nos permite limpiar partes de un registro, si quisieramos preservar solamente la parte baja de 0xBABAC0C0 podemos hacer un and con 0x0000FFFF consiguiendo 0x0000C0C0
-- <b>xor</b>:  Conseguir la negacion logica al aplicar la operacion a -1, recordemos que -1 se codifica con todos 1, por lo que xori s1, s2, -1 va a aplicar un xor entre s2 y -1 que se codifica como 0xFFF en 12 bits y se extiende a 0xFFFFFFFF al ejecutar, consiguiendo un xor contra todos unos, queefectivamente niega el valor.
+- <b>xor</b>:  Conseguir la negacion logica al aplicar la operacion a -1, recordemos que -1 se codifica con todos 1, por lo que xori s1, s2, -1 va a aplicar un xor entre s2 y -1 que se codifica como 0xFFF en 12 bits y se extiende a 0xFFFFFFFF al ejecutar, consiguiendo un xor contra todos unos, que efectivamente niega el valor.
+- [Extra] <b>slt</b>: slt x7, x5, x6   # x7 = (x5 < x6) ? 1 : 0
 
 ### Instrucciones de desplazamiento:
 - <b>sll</b> (shift-left-logical): desplaza a izquierda el valor tantas veces como especifique el segundo operando fuente, complementando con 0s a derecha.
@@ -211,8 +212,9 @@ Al espacio de la pila utilizado por la llamada en cuestion lo llamamos marco de 
 
 ## Pseudo instrucciones:
 Algunas de las instrucciones empleadas en el lenguaje ensamblador no son verdaderamente instrucciones, en el sentido de que el procesador no sabe interpretarlas, sino que es el compilador el que
-se encarga de traducir una de estas asi llamadas pseudointstruccion en una instruccion propiamente dicha. El uso de las pseudoinstrucciones se debe a que encapsulan operaciones comunes y convenientes pero que no justifican su inclusion en el set de instrucciones de la arquitectura si queremos mantenerlo
-acotado.
+se encarga de traducir una de estas asi llamadas pseudointstruccion en una instruccion propiamente dicha. El uso de las pseudoinstrucciones se debe a que encapsulan operaciones comunes y convenientes pero que no justifican su inclusion en el set de instrucciones de la arquitectura si queremos mantenerlo acotado.
+
+<img src="pseudoinstrucciones_riscv.png">
 
 ## Lenguaje de maquina
 
@@ -223,7 +225,7 @@ cargados en memoria y ejecutados.
 ## Tipos de instrucciones
 1. R-TYPE: Utilizan dos operandos fuente y uno destino. Op, funct7 y funct3 determinan el tipo de instruccion codificada.
 2. I-TYPE: Utilizan un registro como operando fuente un inmediato de 12 bits y uno como operando destino. El tipo de instruccion la codifica funct3 y op.
-3. S-TYPE: Son instrucciones de carga. Tienen 2 operandos fuente y un inmediato de 12 bits que representa el offset. El tipo de instruccion la codifica funct3 y op.
-4. B-TYPE: Son instrucciones de saltos condicionales. Tienen 2 operandos fuente y un inmediato de 13 bits que refleja el offset. El tipo de instruccion la codifica funct3 y op.
+3. S-TYPE (sw t2 -6(s3)): Son instrucciones de carga. Tienen 2 operandos fuente y un inmediato de 12 bits que representa el offset. El tipo de instruccion la codifica funct3 y op.
+4. B-TYPE (beq s0 t5 L1): Son instrucciones de saltos condicionales. Tienen 2 operandos fuente y un inmediato de 13 bits que refleja el offset. El tipo de instruccion la codifica funct3 y op.
 5. U-TYPE: Son instrucciones de inmediato superior. Reciben un inmediato de 20 bits y un registro destino. El tipo de instruccion la codifica el op de 7 bits.
 6. J-TYPE: Son instrucciones de saltos incondicionales. Reciben un inmediato de 20 bits y un registro destino. El tipo de instruccion la codifica el op de 7 bits.
