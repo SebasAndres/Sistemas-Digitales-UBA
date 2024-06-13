@@ -1,0 +1,51 @@
+.text
+    main:
+        #cargamos el dato
+        lw s0, dato
+        li a7, 4
+        la a0, dato_msg
+        ecall 
+        mv a0, s0
+        li a7, 34
+        ecall 
+
+        li s1 1 # mascara de paridad 
+        li s2 0 # contador de impares
+        
+        #comparamos el primer byte 
+        and s3, s0, s1 # s3 = 0 sii el primer byte es par
+        add s2, s2, s3
+
+        #corremos un byte
+        srli s0, s0, 8 
+        and s3, s0, s1 
+        add s2, s2, s3
+
+        #corremos un byte
+        srli s0, s0, 8
+        and s3, s0, s1
+        add s2, s2, s3
+
+        #corremos un byte
+        srli s0, s0, 8
+        and s3, s0, s1
+        add s2, s2, s3
+
+        li a7, 4
+        la a0, result_msg
+        ecall 
+
+        mv a0, s2
+        li a7, 34
+        ecall 
+
+        #salimos
+        li a7, 93
+        li a0, 0
+        ecall
+
+.data   
+    dato: .byte 0xF0 0x0F 0xFE 0x3C
+    dato_msg: .string "El dato es:"
+    result_msg: .string "Cantidad de impares:"
+       
