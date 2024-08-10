@@ -1,0 +1,115 @@
+[0] Interpretacion del codigo RISCV:
+
+li a0,4228                      # 1      | a0=4228
+li a1,2114                      # 2      | a1=2114
+jal ra,resta                    # 3      | Salta a la etiqueta 'resta' y guarda la dirección de retorno ('fin') en ra
+fin: beq zero, zero, fin        # 17     | Bucle infinito en 'fin'
+resta:                            
+prologo: addi sp, sp, -4        # 4 y 9  | Ajusta el puntero de pila hacia abajo (reserva espacio en la pila)
+    sw ra,0(sp)                 # 5 y 10 | Guarda el ra (return adress) en la memoria/stack
+    sub a0,a0,a1                # 6 y 11 | a0 = a0 - a1
+    beq a0,zero,epilogo         # 7 y 12 | Si a0==0 --> salta a "epilogo" else "sigo"
+sigo: jal ra,resta              # 8      | Salta a 'resta' (ahora a0=2114) y guarda la dirección de retorno en ra
+epilogo:                        # 13   
+    lw ra,0(sp)                 # 14     | Restaura el valor de ra desde la memoria
+    addi sp,sp,4                # 15     | sp += 4
+    ret                         # 16     | retorna de la subrutina
+
+
+[a] Indicar posiciones de memoria de cada etiqueta.
+
+li a0,4228                      # 0x00
+li a1,2114                      # 0x04
+jal ra,resta                    # 0x08
+fin: beq zero, zero, fin        # 0x0C <-- etiqueta
+resta:                          # 0x10 <-- etiqueta
+prologo: addi sp, sp, -4        # 0x14 <-- etiqueta
+    sw ra,0(sp)                 # 0x18 
+    sub a0,a0,a1                # 0x1C
+    beq a0,zero,epilogo         # 0x20
+sigo: jal ra,resta              # 0x24 <-- etiqueta
+epilogo:                        # 0x28 <-- etiqueta
+    lw ra,0(sp)                 # 0x2C
+    addi sp,sp,4                # 0x30
+    ret                         # 0x34
+
+[b] Indicar el desplazamiento de las llamadas a etiquetas
+
+li a0,4228                      
+li a1,2114                      
+jal ra,resta                    # desplazamiento a etiqueta 
+fin: beq zero, zero, fin       
+resta:                          
+prologo: addi sp, sp, -4        
+    sw ra,0(sp)                  
+    sub a0,a0,a1                
+    beq a0,zero,epilogo         
+sigo: jal ra,resta              # desplazamiento a etiqueta
+epilogo:                        
+    lw ra,0(sp)                 
+    addi sp,sp,4                
+    ret                         
+
+[c] Indique el rango de constantes, en decimal y binario que pueden utilizarse en la instruccion LI.
+¿Coinciden con el rango del imm de la instruccion ADDI?
+
+- La pseudo-instrucción LI puede cargar cualquier valor inmediato en un registro. 
+- En cambio, para ADDI hay 12 bits asignados con signo para el imm (-2048 a 2047). 
+
+[d] ¿Como resuelve los valores inmediatos que no son representables en 12 bits C2?
+
+Si el valor a representar esta dentro del rango (-2048 a 2047):
+    Se descompone como una instruccion ADDI    
+Sino:
+    Se descompone en una o mas instrucciones adecuadas...
+
+    Por ejemplo:
+    Si queremos cargar en t0 el numero 74565 (0x12345),
+    se traduce "li t0 0x12345" como:     
+
+    lui t0, 0x12    # Carga los 20 bits superiores, esto coloca el valor 0x12 en los bits superiores del registro, resultando en 0x12000.
+    addi t0, t0, 0x345  # Ajusta los 12 bits inferiores
+
+    Esto funciona tanto si el numero esta por debajo o por arriba del rango de 12 bits.
+
+[e] El valor final de a1 es 2114
+
+[f] El valor final del PC es 0x0C (la etiqueta fin)
+
+[g] La secuencia descripta por el PC (ver comentarios flujo de ejecucion)
+
+[h] Indicar valores de ra (register adress) y sp (stack pointer) al inicio, durante y fin de ejecucion.
+
+En general:
+sp (Stack Pointer): Apunta al tope de la pila y se utiliza para manejar el almacenamiento temporal de datos y direcciones de retorno.
+ra (Return Address): Almacena la dirección de retorno cuando se llama a una subrutina, permitiendo que la subrutina retorne 
+                     correctamente al punto de llamada.
+
+Inicio:
+- ra: Basura
+- sp: 0x8000 (por ejemplo, es el tope de la pila de memoria del sistema)
+
+Durante:
+- ra: Toma la dirección de retorno después de cada jal.
+- sp: Se decrementa y se incrementa a medida que se reserva y libera espacio en la pila
+
+Fin Ejecucion:
+- ra: Tiene la direccion de la instruccion `fin` manteniendo el programa en un bucle infinito
+- sp: Vuelve a su valor original, 0x8000.
+
+[i] Reemplazar la segunda instruccion li a1,1023 de modo que a1 sea a0 dividido 2 con una unica instruccion.
+
+li a0,4228                      
+sra a1, a0, 1   # shift right arithmetic por un bit ~ dividir por 2 a0 y guardarlo en a1                
+jal ra,resta                   
+fin: beq zero, zero, fin       
+resta:                          
+prologo: addi sp, sp, -4        
+    sw ra,0(sp)                  
+    sub a0,a0,a1                
+    beq a0,zero,epilogo         
+sigo: jal ra,resta              
+epilogo:                        
+    lw ra,0(sp)                 
+    addi sp,sp,4                
+    ret                         

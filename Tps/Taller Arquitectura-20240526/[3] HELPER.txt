@@ -1,0 +1,21 @@
+00000008 <main>:
+08:  00400593   addi x11, x0, 4                # x11 = x0+4 = 4
+0c:  0005a603   lw x12, 0(x11)                 # x12 = carga la direccion 4 de memoria (son 32 0s) = 0
+10:  00400693   addi x13, x0, 4                # x13 = x0+4 = 4
+14:  0006a683   lw x13, 0(x13)                 # x13 = carga la direccion 4 de memoria (son 32 0s) = 0
+18:  0006a683   lw x13, 0(x13)                 # x13 = carga la direccion 0 de memoria = 0
+1c:  fed606e3   beq x12, x13, -20<main>        # Si x12=13 --> salta a "actual (1c) - desplazamiento (20) = <main> = 0x08"
+
+00000020 <guardar>
+20:  fffa6737   lui x14, 0xfffa6               
+24:  9fd70713   addi x14, x14, -1539           
+28:  00c70633   add x12, x14, x12              
+2c:  02b62423   sw x11, 40, x12
+
+00000030 <fin_programa>
+30:  00000513  addi x10, x0, 0
+34:  05d00893  addi x17, 0, 93
+38:  00000073  ecall
+
+
+[b] Ejecutar el nuevo programa desde el PC=0x00 no cambia el flujo porque las instrucciones tambien estan desplazadas.

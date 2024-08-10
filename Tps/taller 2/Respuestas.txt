@@ -1,0 +1,68 @@
+[1]
+a)
+Phi = (A.C_A) + (B.C_B) + (C.C_C) y 
+      "si un par esta prendido, no hay otro par que tenga la linea de control prendida y la entrada apagada"
+
+b)
+Colores de los cables:
+- Verde claro: la señal que fluye es un 1
+- Verde oscuro: la señal que fluye es un 0
+- Azul(U): la salida es 1 bit que esta indefinido (U / Hi-Z), lo interpretamos como que el circuito esta bloqueado
+- Rojo(E): fluye un valor erroneo.
+
+c)
+No tiene que haber mas de una linea de control activa junto con algun input A, B, C (o estan los 3 encendidas A, B y C).
+Da error cuando el ultimo tramo del cable (despues del buffer) da 1 en algun par y 0 en otro par.
+
+d) 
+Validar: Creemos que es cuando mas de un par devuelve 1 simultaneamente.
+
+-------------------------------------------------------------------------------------------------------------------------------
+[2]
+
+a) 
+Entradas:
+- clock: de control, pulsos para sincronizar el circuito  
+- reg_in: dato, es el dato a almacenar
+- w: de control, es un enabler para ejecutar el almacenamiento si el clock esta activo
+- en_out: de control, sirve para que el circuito devuelva el dato almacenado
+
+Salidas:
+- reg_debug: expone el valor almacenado
+- reg_output: devuelve el valor almacenado sii en_out esta activo
+
+b) 
+La idea es: enout_origen >> w_salida >> clock >> !enout_origen >> !w >> !clock
+
+Secuencia:
+"
+Reg1 >> enReg1 >> enout0 >> w1 >> clock >> !enout0 > !w1 >> !clock
+enout2 >> w0 >> clock >> !enout2 > !w0 >> !clock
+enout1 >> w2 >> clock >> !enout1 >> !w2 >> !clock
+"
+
+-------------------------------------------------------------------------------------------------------------------------------
+[3]
+
+ALU_regs: guarda dos valores y opera con ellos.
+
+a)
+
+Entradas:
+1. clk: Es de control, para sincronizar el circuito.
+2. ALU_A_write y ALU_B_Write: Son controladores/enabler para saber si guardar los valores de entrada.
+3. OP: Operacion a realizar en la ALU.
+4. ALU_enableOut: Es de control, para permitir que el circuito devuelva el resultado.
+5. Reg(i)_Write: Es de control, permite leer el valor que entra por Reg4In
+   Reg(i)_enableOut: Es de control, si esta encendido devuelve el valor almacenado en el registro a RegOut
+6. Force Input: Es el valor de entrada que le asignaremos a los registros.
+7. enForceInput: Es de control, habilita el valor puesto en ForceInput.
+
+Salidas:
+1. N, Z, V, C: Salidas de la operacion de la ALU entre A y B.
+2. S_debug: Es el resultado de la operacion de la ALU registrado.
+3. A_debug, B_debug: Los valores almacenados para A y B.
+4. Reg4Output: Es el resultado de la ultima operacion para guardar en memoria.
+5. Reg(i)Debug: Son los valores almacenados en cada registro.
+
+e) Es para que haya un ciclo mas entre el resultado de la operacion y la salida o su paso por reg4 para almacenarlo.
